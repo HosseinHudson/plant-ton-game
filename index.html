@@ -8,64 +8,150 @@
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Reset */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         
+        /* Background EXACTLY like the image - Farm field */
         body {
-            background: linear-gradient(180deg, #1a1f2e 0%, #0d1117 100%);
-            color: white;
+            background: 
+                /* Sky gradient */
+                linear-gradient(180deg, #87CEEB 0%, #98D8E8 30%, #B0E8D5 60%, #C8F0C0 100%),
+                /* Farm field pattern */
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(139, 195, 74, 0.1) 40px,
+                    rgba(139, 195, 74, 0.1) 80px
+                ),
+                /* Soil texture */
+                radial-gradient(circle at 20% 80%, #8B4513 0%, #A0522D 20%, transparent 40%),
+                radial-gradient(circle at 80% 20%, #8B4513 0%, #A0522D 20%, transparent 40%);
+            background-blend-mode: overlay, overlay, normal;
             min-height: 100vh;
+            color: #333;
+            position: relative;
+            overflow-x: hidden;
         }
         
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
+        /* Farm field decorative elements */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                /* Small plants/grass */
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50,80 L45,60 L55,60 Z" fill="%234CAF50" opacity="0.3"/></svg>'),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30,75 L25,55 L35,55 Z" fill="%234CAF50" opacity="0.3"/></svg>'),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M70,75 L65,55 L75,55 Z" fill="%234CAF50" opacity="0.3"/></svg>'),
+                /* Farm rows */
+                linear-gradient(90deg, transparent 49%, rgba(139, 195, 74, 0.2) 49%, rgba(139, 195, 74, 0.2) 51%, transparent 51%);
+            background-size: 30px 30px, 40px 40px, 35px 35px, 100px 100px;
+            background-position: 20% 70%, 40% 80%, 80% 75%, 0 0;
+            background-repeat: repeat;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* Main Container */
+        .app-container {
+            max-width: 100%;
+            min-height: 100vh;
+            position: relative;
             padding-bottom: 80px;
+            backdrop-filter: blur(0.5px);
         }
         
-        /* Header */
-        .header {
-            background: linear-gradient(90deg, #2d3748 0%, #1a202c 100%);
-            padding: 15px;
+        /* Header - EXACT match to image */
+        .app-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 18px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #4a5568;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
         
         .close-btn {
             background: none;
             border: none;
-            color: white;
-            font-size: 24px;
+            font-size: 32px;
+            color: #666;
             cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s;
         }
         
-        .balance-display {
+        .close-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .app-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2C3E50;
+            letter-spacing: -0.5px;
+        }
+        
+        /* Main Content Area - EXACT like image */
+        .main-content {
+            padding: 25px 20px;
             text-align: center;
-            padding: 20px;
-            background: linear-gradient(90deg, #2d3748 0%, #1a202c 100%);
-            margin: 10px;
-            border-radius: 15px;
-            border: 1px solid #4a5568;
+        }
+        
+        /* Balance Display - BIG number like image */
+        .balance-display {
+            margin: 30px auto;
+            position: relative;
+            max-width: 300px;
         }
         
         .balance-amount {
-            font-size: 48px;
-            font-weight: bold;
-            background: linear-gradient(90deg, #00ff88, #00ccff);
+            font-size: 72px;
+            font-weight: 800;
+            color: #2C3E50;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #2C3E50, #4A6572);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin: 10px 0;
+            background-clip: text;
         }
         
-        .balance-label {
-            color: #a0aec0;
-            font-size: 14px;
+        .timer-display {
+            font-size: 20px;
+            color: #7F8C8D;
+            font-weight: 600;
+            margin-top: 5px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 8px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Plants Section - Hidden in main view like image */
+        .plants-section {
+            display: none; /* Hidden like in the image */
         }
         
         /* Plants Grid */
@@ -77,286 +163,525 @@
         }
         
         .plant-card {
-            background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            padding: 20px;
+            padding: 25px 20px;
             text-align: center;
-            border: 1px solid #4a5568;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .plant-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 20px 20px 0 0;
         }
         
         .plant-card:hover {
-            transform: translateY(-5px);
-            border-color: #00ff88;
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
         }
         
         .plant-emoji {
-            font-size: 40px;
-            margin-bottom: 10px;
+            font-size: 55px;
+            margin-bottom: 15px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
         }
         
         .plant-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #2C3E50;
+            margin-bottom: 10px;
+        }
+        
+        .plant-info {
+            margin: 15px 0;
         }
         
         .plant-yield {
-            color: #00ff88;
-            font-size: 14px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #27AE60;
             margin-bottom: 5px;
         }
         
         .plant-cycle {
-            color: #a0aec0;
-            font-size: 12px;
+            font-size: 14px;
+            color: #7F8C8D;
+            margin-bottom: 20px;
         }
         
         .plant-action {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 10px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
             width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
         }
         
-        .free-btn {
-            background: linear-gradient(90deg, #00ff88, #00ccff);
-            color: black;
-        }
-        
-        .task-btn {
-            background: linear-gradient(90deg, #ffcc00, #ff9900);
-            color: black;
-        }
-        
-        .pay-btn {
-            background: linear-gradient(90deg, #ff3366, #ff0066);
+        .action-free {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
             color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
         
-        /* Modal */
-        .modal {
+        .action-task {
+            background: linear-gradient(135deg, #FF9800, #FFB74D);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+        
+        .action-paid {
+            background: linear-gradient(135deg, #2196F3, #03A9F4);
+            color: white;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+        
+        .plant-action:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        
+        /* Modal - EXACT match to image */
+        .modal-overlay {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         .modal-content {
-            background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
-            border-radius: 25px;
-            padding: 30px;
-            width: 90%;
-            max-width: 350px;
-            border: 1px solid #4a5568;
+            background: white;
+            border-radius: 30px;
+            width: 100%;
+            max-width: 380px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.4s ease;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
         .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            padding: 30px 25px;
+            text-align: center;
+            color: white;
+            position: relative;
         }
         
         .modal-close {
-            background: none;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
             border: none;
             color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
             font-size: 24px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .modal-emoji {
+            font-size: 70px;
+            margin-bottom: 15px;
+            filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.2));
         }
         
         .modal-title {
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            flex-grow: 1;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            letter-spacing: -0.5px;
         }
         
-        /* Bottom Navigation */
+        .modal-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+        
+        .modal-body {
+            padding: 30px 25px;
+        }
+        
+        .plant-info-card {
+            background: #F8F9FA;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #E9ECEF;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .info-label {
+            color: #6C757D;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            font-weight: 700;
+            font-size: 18px;
+        }
+        
+        .info-yield {
+            color: #27AE60;
+        }
+        
+        .modal-action-btn {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 18px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+        }
+        
+        .modal-action-btn:hover {
+            transform: scale(1.02);
+        }
+        
+        /* Task Modal */
+        .task-list {
+            margin: 25px 0;
+        }
+        
+        .task-item {
+            background: #F8F9FA;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #E9ECEF;
+        }
+        
+        .task-info h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2C3E50;
+        }
+        
+        .task-info p {
+            font-size: 14px;
+            color: #7F8C8D;
+        }
+        
+        .task-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        .task-btn:hover {
+            background: #45a049;
+        }
+        
+        /* Bottom Navigation - EXACT like image */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: #1a202c;
+            background: rgba(255, 255, 255, 0.98);
             display: flex;
             justify-content: space-around;
-            padding: 15px 0;
-            border-top: 1px solid #4a5568;
+            padding: 18px 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
             z-index: 100;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.05);
         }
         
         .nav-btn {
             background: none;
             border: none;
-            color: #a0aec0;
             display: flex;
             flex-direction: column;
             align-items: center;
             cursor: pointer;
-            font-size: 12px;
+            color: #7F8C8D;
+            font-size: 13px;
+            gap: 8px;
+            padding: 5px 15px;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(76, 175, 80, 0.1);
         }
         
         .nav-btn.active {
-            color: #00ff88;
+            color: #4CAF50;
+            background: rgba(76, 175, 80, 0.15);
         }
         
         .nav-icon {
-            font-size: 20px;
-            margin-bottom: 5px;
-        }
-        
-        /* Task Modal */
-        .task-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .task-btn-small {
-            background: linear-gradient(90deg, #00ff88, #00ccff);
-            color: black;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
+            font-size: 24px;
+            margin-bottom: 2px;
         }
         
         /* Loading */
-        .loading {
+        .loading-overlay {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.9);
-            display: none;
+            z-index: 2000;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
+            flex-direction: column;
         }
         
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #4a5568;
-            border-top: 4px solid #00ff88;
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top: 5px solid #4CAF50;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .loading-text {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        /* TON Wallet Section */
+        .wallet-section {
+            padding: 25px 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        #ton-connect-button {
+            margin: 15px 0;
+        }
+        
+        .wallet-info {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: none;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        
+        .wallet-address {
+            font-family: monospace;
+            color: #27AE60;
+            font-weight: 600;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        
+        .disconnect-btn {
+            background: #E74C3C;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        /* Success Message */
+        .success-message {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(76, 175, 80, 0.4);
+            z-index: 1500;
+            display: none;
+            animation: slideDown 0.5s ease;
+            max-width: 90%;
+        }
+        
+        @keyframes slideDown {
+            from { top: -100px; opacity: 0; }
+            to { top: 100px; opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
+    <div class="app-container">
+        <!-- Header EXACTLY like image -->
+        <div class="app-header">
             <button class="close-btn" onclick="window.close()">×</button>
-            <h1>Plant TON</h1>
-            <div></div> <!-- Empty div for spacing -->
+            <div class="app-title">Plant TON</div>
+            <div style="width: 40px;"></div>
         </div>
         
-        <!-- Balance Display -->
-        <div class="balance-display">
-            <div class="balance-amount" id="balance">0.000</div>
-            <div class="balance-label">Available Balance</div>
+        <!-- Main Content EXACTLY like image -->
+        <div class="main-content">
+            <div class="balance-display">
+                <div class="balance-amount" id="balance">0.054</div>
+                <div class="timer-display" id="timer">22h</div>
+            </div>
         </div>
         
-        <!-- Plants Grid -->
-        <div class="plants-grid" id="plants-grid">
-            <!-- Plants will be loaded here -->
+        <!-- Plants Section (hidden in main view) -->
+        <div class="plants-section" id="plants-section">
+            <div class="plants-grid" id="plants-grid">
+                <!-- Plants will be loaded by JavaScript -->
+            </div>
         </div>
         
-        <!-- TON Connect Wallet -->
-        <div style="padding: 20px; text-align: center;">
+        <!-- TON Wallet Section -->
+        <div class="wallet-section">
             <div id="ton-connect-button"></div>
-            <div id="wallet-info" style="display: none; margin-top: 10px;">
-                <span id="wallet-address" style="color: #00ff88;"></span>
-                <button onclick="disconnectWallet()" style="margin-left: 10px; padding: 5px 10px; background: #ff3366; color: white; border: none; border-radius: 5px; cursor: pointer;">Disconnect</button>
+            <div class="wallet-info" id="wallet-info">
+                <div style="font-weight: 600; margin-bottom: 10px;">Wallet Connected</div>
+                <div class="wallet-address" id="wallet-address"></div>
+                <button class="disconnect-btn" onclick="disconnectWallet()">Disconnect</button>
             </div>
         </div>
     </div>
     
     <!-- Plant Modal -->
-    <div class="modal" id="plant-modal">
+    <div class="modal-overlay" id="plant-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <button class="modal-close" onclick="closeModal()">×</button>
-                <div class="modal-title" id="modal-plant-name">Plant</div>
-                <div></div>
+                <div class="modal-emoji" id="modal-emoji">🌽</div>
+                <div class="modal-title" id="modal-plant-name">Corn</div>
+                <div class="modal-subtitle" id="modal-plant-level">LV3</div>
             </div>
-            <div id="modal-content">
-                <!-- Modal content will be loaded here -->
+            <div class="modal-body">
+                <div class="plant-info-card">
+                    <div class="info-row">
+                        <div class="info-label">Yield:</div>
+                        <div class="info-value info-yield" id="modal-yield">1.06 TON</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Growth cycle:</div>
+                        <div class="info-value" id="modal-cycle">23h</div>
+                    </div>
+                </div>
+                <button class="modal-action-btn" id="modal-action-btn" onclick="handleModalAction()" style="background: linear-gradient(135deg, #2196F3, #03A9F4); color: white;">
+                    1 TON
+                </button>
             </div>
         </div>
     </div>
     
     <!-- Task Modal -->
-    <div class="modal" id="task-modal">
+    <div class="modal-overlay" id="task-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <button class="modal-close" onclick="closeModal()">×</button>
-                <div class="modal-title">Tasks</div>
-                <div></div>
+                <div class="modal-emoji">🥔</div>
+                <div class="modal-title">Task</div>
+                <div class="modal-subtitle">Activate-Task</div>
             </div>
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div style="font-size: 48px;">🥔</div>
-                <h3 style="margin: 10px 0;">Unlock Potato Plant</h3>
-                <p style="color: #a0aec0;">Complete tasks to unlock</p>
-            </div>
-            
-            <div class="task-item">
-                <div>
-                    <div style="font-weight: bold;">Join Channel</div>
-                    <div style="font-size: 12px; color: #a0aec0;">Join @Planting_Ton</div>
+            <div class="modal-body">
+                <div class="task-list">
+                    <div class="task-item">
+                        <div class="task-info">
+                            <h4>Join channel</h4>
+                            <p>@Planting_Ton</p>
+                        </div>
+                        <button class="task-btn" onclick="joinChannel()">Join</button>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-info">
+                            <h4>Share to groups</h4>
+                            <p>Share the bot link</p>
+                        </div>
+                        <button class="task-btn" onclick="shareToGroup()">Share</button>
+                    </div>
                 </div>
-                <button class="task-btn-small" onclick="joinChannel()">Join</button>
-            </div>
-            
-            <div class="task-item">
-                <div>
-                    <div style="font-weight: bold;">Invite Friends</div>
-                    <div style="font-size: 12px; color: #a0aec0;">5/5 friends invited</div>
-                </div>
-                <div style="color: #00ff88;">✓ Completed</div>
-            </div>
-            
-            <div class="task-item">
-                <div>
-                    <div style="font-weight: bold;">Share to Groups</div>
-                    <div style="font-size: 12px; color: #a0aec0;">Share the bot to a group</div>
-                </div>
-                <button class="task-btn-small" onclick="shareToGroup()">Share</button>
+                <button class="modal-action-btn" onclick="completeTask()" style="background: linear-gradient(135deg, #FF9800, #FFB74D); color: white;">
+                    Planting
+                </button>
             </div>
         </div>
     </div>
     
-    <!-- Loading Overlay -->
-    <div class="loading" id="loading">
-        <div class="spinner"></div>
+    <!-- Success Message -->
+    <div class="success-message" id="success-message">
+        <div style="font-size: 18px; font-weight: 600;" id="success-text"></div>
     </div>
     
-    <!-- Bottom Navigation -->
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-text">Processing...</div>
+    </div>
+    
+    <!-- Bottom Navigation EXACTLY like image -->
     <div class="bottom-nav">
         <button class="nav-btn active" onclick="showSection('home')">
             <div class="nav-icon">🏠</div>
