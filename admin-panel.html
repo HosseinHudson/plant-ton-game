@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plant TON - Admin Panel</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: #4CAF50; color: white; }
+        .paid { background: #d4edda; }
+        .pending { background: #fff3cd; }
+    </style>
+</head>
+<body>
+    <h1>Plant TON - Admin Panel</h1>
+    
+    <div>
+        <h3>Pending Withdrawals</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>User Address</th>
+                    <th>Amount (TON)</th>
+                    <th>Time Requested</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="withdrawals-body"></tbody>
+        </table>
+    </div>
+    
+    <div>
+        <h3>Recent Purchases</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>User Address</th>
+                    <th>Plant</th>
+                    <th>Amount</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="purchases-body"></tbody>
+        </table>
+    </div>
+    
+    <script>
+        // Load transactions from localStorage
+        function loadTransactions() {
+            const transactions = JSON.parse(localStorage.getItem('ton_transactions') || '[]');
+            const purchasesBody = document.getElementById('purchases-body');
+            
+            purchasesBody.innerHTML = '';
+            
+            transactions.forEach(tx => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${tx.address.slice(0, 15)}...</td>
+                    <td>${tx.plant}</td>
+                    <td>${tx.amount} TON</td>
+                    <td>${new Date(tx.timestamp).toLocaleString()}</td>
+                    <td><span style="color:green">✓ Paid</span></td>
+                `;
+                purchasesBody.appendChild(row);
+            });
+        }
+        
+        // Mark withdrawal as paid
+        function markAsPaid(address, amount) {
+            alert(`Send ${amount} TON to:\n\n${address}`);
+            
+            // Copy address to clipboard
+            navigator.clipboard.writeText(address);
+            alert('Address copied to clipboard!');
+            
+            // Remove from list
+            const withdrawals = JSON.parse(localStorage.getItem('withdrawal_requests') || '[]');
+            const updated = withdrawals.filter(w => w.address !== address);
+            localStorage.setItem('withdrawal_requests', JSON.stringify(updated));
+            
+            loadWithdrawals();
+        }
+        
+        function loadWithdrawals() {
+            const withdrawals = JSON.parse(localStorage.getItem('withdrawal_requests') || '[]');
+            const body = document.getElementById('withdrawals-body');
+            
+            body.innerHTML = '';
+            
+            withdrawals.forEach(w => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${w.address.slice(0, 15)}...</td>
+                    <td>${w.amount} TON</td>
+                    <td>${new Date(w.timestamp).toLocaleString()}</td>
+                    <td>
+                        <button onclick="markAsPaid('${w.address}', ${w.amount})">
+                            Mark as Paid
+                        </button>
+                    </td>
+                `;
+                body.appendChild(row);
+            });
+        }
+        
+        // Initialize
+        window.onload = function() {
+            loadTransactions();
+            loadWithdrawals();
+        };
+    </script>
+</body>
+</html>

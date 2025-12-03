@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant TON - Farm & Earn</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-top">
+                <button class="close-btn" onclick="window.close()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h1>🌿 Plant TON</h1>
+                <div class="balance">
+                    <i class="fas fa-wallet"></i>
+                    <span id="balance">0.000</span> TON
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat">
+                    <span>Planted</span>
+                    <strong id="planted-count">0</strong>
+                </div>
+                <div class="stat">
+                    <span>Friends</span>
+                    <strong id="friends-count">0/5</strong>
+                </div>
+                <div class="stat">
+                    <span>Level</span>
+                    <strong>1</strong>
+                </div>
+            </div>
+        </header>
+
+        <!-- TON Connect Wallet -->
+        <div class="wallet-section">
+            <div id="ton-connect-button"></div>
+            <div id="wallet-info" class="hidden">
+                <span id="wallet-address"></span>
+                <button onclick="disconnectWallet()">Disconnect</button>
+            </div>
+        </div>
+
+        <!-- Main Game Area -->
+        <main>
+            <!-- Farming Grid -->
+            <div class="farm-grid" id="farm-grid">
+                <!-- 9 slots will be generated dynamically -->
+            </div>
+
+            <!-- Task Progress -->
+            <div class="task-card">
+                <h3><i class="fas fa-tasks"></i> Complete Tasks to Unlock Plants</h3>
+                <div class="task-list">
+                    <div class="task">
+                        <span>Join Channel</span>
+                        <button class="task-btn" onclick="joinChannel()">Join</button>
+                    </div>
+                    <div class="task">
+                        <span>Invite 5 friends</span>
+                        <span id="invite-progress">0/5</span>
+                    </div>
+                    <div class="task">
+                        <span>Share to group</span>
+                        <button class="task-btn" onclick="shareToGroup()">Share</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral Section -->
+            <div class="referral-card">
+                <h3><i class="fas fa-user-plus"></i> Invite Friends</h3>
+                <p>Invite friends and unlock Potato plant!</p>
+                <div class="referral-link">
+                    <input type="text" id="ref-link" readonly>
+                    <button onclick="copyRefLink()">Copy</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" onclick="showSection('home')">
+                <i class="fas fa-home"></i> Home
+            </button>
+            <button class="nav-btn" onclick="showSection('invite')">
+                <i class="fas fa-users"></i> Invite
+            </button>
+            <button class="nav-btn" onclick="showSection('wallet')">
+                <i class="fas fa-wallet"></i> Wallet
+            </button>
+            <button class="nav-btn" onclick="showSection('plants')">
+                <i class="fas fa-seedling"></i> Plants
+            </button>
+        </nav>
+
+        <!-- Modals -->
+        <div id="plant-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+                <div id="modal-content"></div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+    </div>
+
+    <script src="plants-data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
