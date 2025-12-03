@@ -3,122 +3,375 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plant TON - Farm & Earn</title>
+    <title>Plant TON</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(180deg, #1a1f2e 0%, #0d1117 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding-bottom: 80px;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(90deg, #2d3748 0%, #1a202c 100%);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #4a5568;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .balance-display {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(90deg, #2d3748 0%, #1a202c 100%);
+            margin: 10px;
+            border-radius: 15px;
+            border: 1px solid #4a5568;
+        }
+        
+        .balance-amount {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+        }
+        
+        .balance-label {
+            color: #a0aec0;
+            font-size: 14px;
+        }
+        
+        /* Plants Grid */
+        .plants-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 20px;
+        }
+        
+        .plant-card {
+            background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #4a5568;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .plant-card:hover {
+            transform: translateY(-5px);
+            border-color: #00ff88;
+        }
+        
+        .plant-emoji {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .plant-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .plant-yield {
+            color: #00ff88;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .plant-cycle {
+            color: #a0aec0;
+            font-size: 12px;
+        }
+        
+        .plant-action {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .free-btn {
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            color: black;
+        }
+        
+        .task-btn {
+            background: linear-gradient(90deg, #ffcc00, #ff9900);
+            color: black;
+        }
+        
+        .pay-btn {
+            background: linear-gradient(90deg, #ff3366, #ff0066);
+            color: white;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
+            border-radius: 25px;
+            padding: 30px;
+            width: 90%;
+            max-width: 350px;
+            border: 1px solid #4a5568;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a202c;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 1px solid #4a5568;
+            z-index: 100;
+        }
+        
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #a0aec0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .nav-btn.active {
+            color: #00ff88;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        /* Task Modal */
+        .task-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .task-btn-small {
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        /* Loading */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #4a5568;
+            border-top: 4px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <!-- Header -->
-        <!-- Updated on [تاریخ امروز] -->
-        <header>
-            <div class="header-top">
-                <button class="close-btn" onclick="window.close()">
-                    <i class="fas fa-times"></i>
-                </button>
-                <h1>🌿 Plant TON</h1>
-                <div class="balance">
-                    <i class="fas fa-wallet"></i>
-                    <span id="balance">0.000</span> TON
-                </div>
-            </div>
-            
-            <div class="stats">
-                <div class="stat">
-                    <span>Planted</span>
-                    <strong id="planted-count">0</strong>
-                </div>
-                <div class="stat">
-                    <span>Friends</span>
-                    <strong id="friends-count">0/5</strong>
-                </div>
-                <div class="stat">
-                    <span>Level</span>
-                    <strong>1</strong>
-                </div>
-            </div>
-        </header>
-
+        <div class="header">
+            <button class="close-btn" onclick="window.close()">×</button>
+            <h1>Plant TON</h1>
+            <div></div> <!-- Empty div for spacing -->
+        </div>
+        
+        <!-- Balance Display -->
+        <div class="balance-display">
+            <div class="balance-amount" id="balance">0.000</div>
+            <div class="balance-label">Available Balance</div>
+        </div>
+        
+        <!-- Plants Grid -->
+        <div class="plants-grid" id="plants-grid">
+            <!-- Plants will be loaded here -->
+        </div>
+        
         <!-- TON Connect Wallet -->
-        <div class="wallet-section">
+        <div style="padding: 20px; text-align: center;">
             <div id="ton-connect-button"></div>
-            <div id="wallet-info" class="hidden">
-                <span id="wallet-address"></span>
-                <button onclick="disconnectWallet()">Disconnect</button>
+            <div id="wallet-info" style="display: none; margin-top: 10px;">
+                <span id="wallet-address" style="color: #00ff88;"></span>
+                <button onclick="disconnectWallet()" style="margin-left: 10px; padding: 5px 10px; background: #ff3366; color: white; border: none; border-radius: 5px; cursor: pointer;">Disconnect</button>
             </div>
-        </div>
-
-        <!-- Main Game Area -->
-        <main>
-            <!-- Farming Grid -->
-            <div class="farm-grid" id="farm-grid">
-                <!-- 9 slots will be generated dynamically -->
-            </div>
-
-            <!-- Task Progress -->
-            <div class="task-card">
-                <h3><i class="fas fa-tasks"></i> Complete Tasks to Unlock Plants</h3>
-                <div class="task-list">
-                    <div class="task">
-                        <span>Join Channel</span>
-                        <button class="task-btn" onclick="joinChannel()">Join</button>
-                    </div>
-                    <div class="task">
-                        <span>Invite 5 friends</span>
-                        <span id="invite-progress">0/5</span>
-                    </div>
-                    <div class="task">
-                        <span>Share to group</span>
-                        <button class="task-btn" onclick="shareToGroup()">Share</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Referral Section -->
-            <div class="referral-card">
-                <h3><i class="fas fa-user-plus"></i> Invite Friends</h3>
-                <p>Invite friends and unlock Potato plant!</p>
-                <div class="referral-link">
-                    <input type="text" id="ref-link" readonly>
-                    <button onclick="copyRefLink()">Copy</button>
-                </div>
-            </div>
-        </main>
-
-        <!-- Bottom Navigation -->
-        <nav class="bottom-nav">
-            <button class="nav-btn active" onclick="showSection('home')">
-                <i class="fas fa-home"></i> Home
-            </button>
-            <button class="nav-btn" onclick="showSection('invite')">
-                <i class="fas fa-users"></i> Invite
-            </button>
-            <button class="nav-btn" onclick="showSection('wallet')">
-                <i class="fas fa-wallet"></i> Wallet
-            </button>
-            <button class="nav-btn" onclick="showSection('plants')">
-                <i class="fas fa-seedling"></i> Plants
-            </button>
-        </nav>
-
-        <!-- Modals -->
-        <div id="plant-modal" class="modal hidden">
-            <div class="modal-content">
-                <span class="close-modal" onclick="closeModal()">&times;</span>
-                <div id="modal-content"></div>
-            </div>
-        </div>
-
-        <!-- Loading -->
-        <div id="loading" class="loading hidden">
-            <div class="spinner"></div>
-            <p>Processing...</p>
         </div>
     </div>
-
-    <script src="plants-data.js"></script>
+    
+    <!-- Plant Modal -->
+    <div class="modal" id="plant-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-close" onclick="closeModal()">×</button>
+                <div class="modal-title" id="modal-plant-name">Plant</div>
+                <div></div>
+            </div>
+            <div id="modal-content">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Task Modal -->
+    <div class="modal" id="task-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-close" onclick="closeModal()">×</button>
+                <div class="modal-title">Tasks</div>
+                <div></div>
+            </div>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 48px;">🥔</div>
+                <h3 style="margin: 10px 0;">Unlock Potato Plant</h3>
+                <p style="color: #a0aec0;">Complete tasks to unlock</p>
+            </div>
+            
+            <div class="task-item">
+                <div>
+                    <div style="font-weight: bold;">Join Channel</div>
+                    <div style="font-size: 12px; color: #a0aec0;">Join @Planting_Ton</div>
+                </div>
+                <button class="task-btn-small" onclick="joinChannel()">Join</button>
+            </div>
+            
+            <div class="task-item">
+                <div>
+                    <div style="font-weight: bold;">Invite Friends</div>
+                    <div style="font-size: 12px; color: #a0aec0;">5/5 friends invited</div>
+                </div>
+                <div style="color: #00ff88;">✓ Completed</div>
+            </div>
+            
+            <div class="task-item">
+                <div>
+                    <div style="font-weight: bold;">Share to Groups</div>
+                    <div style="font-size: 12px; color: #a0aec0;">Share the bot to a group</div>
+                </div>
+                <button class="task-btn-small" onclick="shareToGroup()">Share</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" onclick="showSection('home')">
+            <div class="nav-icon">🏠</div>
+            <div>Home</div>
+        </button>
+        <button class="nav-btn" onclick="showSection('invite')">
+            <div class="nav-icon">👥</div>
+            <div>Invite</div>
+        </button>
+        <button class="nav-btn" onclick="showSection('wallet')">
+            <div class="nav-icon">💼</div>
+            <div>Wallet</div>
+        </button>
+    </div>
+    
     <script src="app.js"></script>
 </body>
 </html>
