@@ -4,102 +4,29 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
     buttonRootId: 'ton-connect-button'
 });
 
-// DOM Elements
-let farmGrid = document.getElementById('farm-grid');
-let balanceEl = document.getElementById('balance');
-let inviteProgress = document.getElementById('invite-progress');
-
-// Initialize game
-function initGame() {
-    loadUserState();
-    renderFarmGrid();
-    updateUI();
-    
-    // Check for Telegram WebApp
-    if (window.Telegram && Telegram.WebApp) {
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand();
-        setupTelegramUser();
-    }
-}
-
-// Render 3x3 farming grid
-function renderFarmGrid() {
-    farmGrid.innerHTML = '';
-    
-    for (let i = 0; i < 9; i++) {
-        const plant = PLANTS[i];
-        const slot = document.createElement('div');
-        slot.className = 'farm-slot';
-        slot.dataset.plantId = plant.id;
-        
-        // Check if plant is unlocked/planted
-        const planted = userState.planted.find(p => p.id === plant.id);
-        
-        if (planted) {
-            // Planted state
-            const timeLeft = getTimeLeft(planted.plantedAt, plant.timeHours);
-            
-            slot.innerHTML = `
-                <div class="plant-emoji">${plant.emoji}</div>
-                <div class="plant-name">${plant.name}</div>
-                ${timeLeft > 0 ? 
-                    `<div class="timer">${formatTime(timeLeft)}</div>` :
-                    `<div class="harvest-ready">READY!</div>`
-                }
-            `;
-            
-            slot.classList.add('planted');
-            if (timeLeft <= 0) slot.classList.add('ready');
-            
-            slot.onclick = () => showPlantDetails(plant.id, true);
-            
-        } else {
-            // Not planted - show lock/unlock state
-            slot.innerHTML = `
-                <div class="plant-emoji locked">${plant.emoji}</div>
-                <div class="plant-name">${plant.name}</div>
-                <div class="unlock-cond">${getUnlockText(plant)}</div>
-            `;
-            
-            if (isPlantUnlocked(plant.id)) {
-                slot.classList.add('unlocked');
-                slot.onclick = () => showPlantDetails(plant.id, false);
-            } else {
-                slot.classList.add('locked');
-                slot.onclick = () => showLockedMessage(plant);
-            }
-        }
-        
-        farmGrid.appendChild(slot);
-    }
-}
-
-// All plants data
+// Plant data - EXACTLY like your images
 const PLANTS = [
     {
         id: 1,
         name: "Tomato",
         emoji: "🍅",
         cost: 0,
-        reward: 0.01,
-        timeHours: 24,
+        reward: 0.001,
+        timeHours: 23,
         type: "free",
-        description: "Basic plant, grows every 24h",
-        unlockCondition: "Free",
-        color: "#FF6B6B"
+        buttonText: "Free",
+        level: "LVI"
     },
     {
         id: 2,
         name: "Potato",
         emoji: "🥔",
         cost: "task",
-        reward: 0.03,
-        timeHours: 24,
+        reward: 0.005,
+        timeHours: 23,
         type: "task",
-        description: "Complete tasks to unlock",
-        unlockCondition: "Invite 5 friends + Share to group",
-        color: "#FFA726",
+        buttonText: "Do Task",
+        level: "LV2",
         task: {
             invitesRequired: 5,
             shareToGroup: true,
@@ -111,12 +38,11 @@ const PLANTS = [
         name: "Corn",
         emoji: "🌽",
         cost: 1,
-        reward: 1.1,
-        timeHours: 24,
+        reward: 1.06,
+        timeHours: 23,
         type: "paid",
-        description: "1 TON investment, 10% daily return",
-        unlockCondition: "Pay 1 TON",
-        color: "#FFD54F"
+        buttonText: "1 TON",
+        level: "LV3"
     },
     {
         id: 4,
@@ -124,11 +50,10 @@ const PLANTS = [
         emoji: "🍅",
         cost: 10,
         reward: 16,
-        timeHours: 24,
+        timeHours: 23,
         type: "paid",
-        description: "10 TON investment, 60% daily return",
-        unlockCondition: "Pay 10 TON",
-        color: "#4FC3F7"
+        buttonText: "10 TON",
+        level: "LV4"
     },
     {
         id: 5,
@@ -136,11 +61,10 @@ const PLANTS = [
         emoji: "🎃",
         cost: 50,
         reward: 85,
-        timeHours: 24,
+        timeHours: 23,
         type: "paid",
-        description: "50 TON investment, 70% daily return",
-        unlockCondition: "Pay 50 TON",
-        color: "#FF9800"
+        buttonText: "50 TON",
+        level: "LV5"
     },
     {
         id: 6,
@@ -148,11 +72,10 @@ const PLANTS = [
         emoji: "🥬",
         cost: 100,
         reward: 200,
-        timeHours: 24,
+        timeHours: 23,
         type: "paid",
-        description: "100 TON investment, 100% daily return",
-        unlockCondition: "Pay 100 TON",
-        color: "#81C784"
+        buttonText: "100 TON",
+        level: "LV6"
     },
     {
         id: 7,
@@ -160,11 +83,10 @@ const PLANTS = [
         emoji: "🍫",
         cost: 250,
         reward: 350,
-        timeHours: 24,
+        timeHours: 23,
         type: "paid",
-        description: "250 TON investment, 40% daily return",
-        unlockCondition: "Pay 250 TON",
-        color: "#795548"
+        buttonText: "250 TON",
+        level: "LV7"
     },
     {
         id: 8,
@@ -172,11 +94,10 @@ const PLANTS = [
         emoji: "🥥",
         cost: 500,
         reward: 1100,
-        timeHours: 24,
+        timeHours: 23,
         type: "paid",
-        description: "500 TON investment, 120% daily return",
-        unlockCondition: "Pay 500 TON",
-        color: "#FFF176"
+        buttonText: "500 TON",
+        level: "LV8"
     },
     {
         id: 9,
@@ -184,150 +105,198 @@ const PLANTS = [
         emoji: "🐉",
         cost: 1000,
         reward: 2500,
-        timeHours: 24,
+        timeHours: 23,
         type: "paid",
-        description: "1000 TON investment, 150% daily return",
-        unlockCondition: "Pay 1000 TON",
-        color: "#F06292"
+        buttonText: "1000 TON",
+        level: "LV9"
     }
 ];
 
-// User game state
+// User state
 let userState = {
-    balance: 0,
+    balance: 0.042,
     planted: [],
-    referrals: 0,
     tasks: {
         joinedChannel: false,
         sharedToGroup: false,
         invites: 0
     },
-    walletAddress: null,
-    plantedHistory: []
+    walletConnected: false
 };
 
-// Your TON wallet address for receiving payments
-const ADMIN_WALLET = "UQAEn4RQcRrasVC72PKvMeTa-VeV9UZqQJqO0ks-D-jHqEkG"; // اینجا آدرس خودت رو بزار
-const MIN_WITHDRAWAL = 2; // Minimum 2 TON for withdrawal
+// Your wallet address
+const ADMIN_WALLET = "UQABC123YOUR_WALLET_ADDRESS";
 
-// Show plant details modal
-function showPlantDetails(plantId, isPlanted) {
-    const plant = PLANTS.find(p => p.id === plantId);
-    const planted = userState.planted.find(p => p.id === plantId);
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadPlants();
+    updateBalance();
+    
+    // TON Connect events
+    tonConnectUI.onStatusChange((wallet) => {
+        if (wallet) {
+            userState.walletConnected = true;
+            document.getElementById('wallet-address').textContent = 
+                wallet.account.address.slice(0, 8) + '...' + wallet.account.address.slice(-6);
+            document.getElementById('wallet-info').style.display = 'block';
+            document.getElementById('ton-connect-button').style.display = 'none';
+        }
+    });
+});
+
+// Load plants to grid
+function loadPlants() {
+    const grid = document.getElementById('plants-grid');
+    grid.innerHTML = '';
+    
+    PLANTS.forEach(plant => {
+        const card = document.createElement('div');
+        card.className = 'plant-card';
+        card.onclick = () => showPlantModal(plant);
+        
+        card.innerHTML = `
+            <div class="plant-emoji">${plant.emoji}</div>
+            <div class="plant-name">${plant.name}</div>
+            <div class="plant-yield">Yield: ${plant.reward} TON</div>
+            <div class="plant-cycle">Growth cycle: ${plant.timeHours}h</div>
+            <button class="plant-action ${getButtonClass(plant)}" onclick="event.stopPropagation(); handlePlantAction(${plant.id})">
+                ${plant.buttonText}
+            </button>
+        `;
+        
+        grid.appendChild(card);
+    });
+}
+
+// Show plant modal
+function showPlantModal(plant) {
+    document.getElementById('modal-plant-name').textContent = plant.name;
     
     let modalContent = '';
     
-    if (isPlanted && planted) {
-        const timeLeft = getTimeLeft(planted.plantedAt, plant.timeHours);
-        
+    if (plant.type === 'free') {
         modalContent = `
-            <div class="plant-modal planted">
-                <div class="plant-header">
-                    <span class="plant-emoji-large">${plant.emoji}</span>
-                    <h2>${plant.name}</h2>
+            <div style="text-align: center;">
+                <div style="font-size: 60px; margin: 20px 0;">${plant.emoji}</div>
+                <div style="font-size: 24px; font-weight: bold; margin: 10px 0;">${plant.name}</div>
+                <div style="color: #a0aec0; margin-bottom: 30px;">${plant.level}</div>
+                
+                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin: 20px 0;">
+                    <div style="font-size: 18px; margin-bottom: 10px;">Yield: ${plant.reward} TON</div>
+                    <div style="color: #a0aec0;">Growth cycle: ${plant.timeHours}h</div>
                 </div>
                 
-                <div class="plant-stats">
-                    <div class="stat">
-                        <span>Yield:</span>
-                        <strong>${plant.reward} TON</strong>
-                    </div>
-                    <div class="stat">
-                        <span>Cycle:</span>
-                        <strong>${plant.timeHours}h</strong>
-                    </div>
-                </div>
-                
-                ${timeLeft > 0 ? 
-                    `<div class="timer-card">
-                        <h3>⏳ Growing...</h3>
-                        <div class="countdown">${formatTime(timeLeft)}</div>
-                        <p>Ready in: ${formatHours(timeLeft)}</p>
-                    </div>` :
-                    `<div class="harvest-card">
-                        <h3>💰 Ready to Harvest!</h3>
-                        <p>Collect ${plant.reward} TON</p>
-                        <button class="harvest-btn" onclick="harvestPlant(${plantId})">
-                            <i class="fas fa-money-bill-wave"></i> Harvest ${plant.reward} TON
-                        </button>
-                    </div>`
-                }
-                
-                <div class="replant-section">
-                    <p>After harvesting, you need to replant.</p>
-                    <button class="buy-btn" onclick="buyPlant(${plantId})">
-                        Replant - ${getCostText(plant)}
-                    </button>
-                </div>
+                <button class="free-btn" style="width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 18px; font-weight: bold; cursor: pointer;" onclick="plantFree(${plant.id})">
+                    Free
+                </button>
             </div>
         `;
-        
-    } else {
-        // Not planted yet
+    }
+    else if (plant.type === 'task') {
         modalContent = `
-            <div class="plant-modal buy">
-                <div class="plant-header">
-                    <span class="plant-emoji-large">${plant.emoji}</span>
-                    <h2>${plant.name}</h2>
+            <div style="text-align: center;">
+                <div style="font-size: 60px; margin: 20px 0;">${plant.emoji}</div>
+                <div style="font-size: 24px; font-weight: bold; margin: 10px 0;">${plant.name}</div>
+                <div style="color: #a0aec0; margin-bottom: 30px;">${plant.level}</div>
+                
+                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin: 20px 0;">
+                    <div style="font-size: 18px; margin-bottom: 10px;">Yield: ${plant.reward} TON</div>
+                    <div style="color: #a0aec0;">Growth cycle: ${plant.timeHours}h</div>
                 </div>
                 
-                <div class="plant-info">
-                    <p>${plant.description}</p>
-                    
-                    <div class="reward-box">
-                        <div class="reward-item">
-                            <span>Cost:</span>
-                            <strong class="cost">${getCostText(plant)}</strong>
-                        </div>
-                        <div class="reward-item">
-                            <span>Daily Yield:</span>
-                            <strong class="yield">${plant.reward} TON</strong>
-                        </div>
-                        <div class="reward-item">
-                            <span>Cycle:</span>
-                            <strong>${plant.timeHours} hours</strong>
-                        </div>
-                    </div>
-                    
-                    <div class="roi">
-                        <i class="fas fa-chart-line"></i>
-                        ROI: ${calculateROI(plant)}%
-                    </div>
+                <button class="task-btn" style="width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 18px; font-weight: bold; cursor: pointer;" onclick="showTaskModal()">
+                    Do Task
+                </button>
+            </div>
+        `;
+    }
+    else if (plant.type === 'paid') {
+        modalContent = `
+            <div style="text-align: center;">
+                <div style="font-size: 60px; margin: 20px 0;">${plant.emoji}</div>
+                <div style="font-size: 24px; font-weight: bold; margin: 10px 0;">${plant.name}</div>
+                <div style="color: #a0aec0; margin-bottom: 30px;">${plant.level}</div>
+                
+                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin: 20px 0;">
+                    <div style="font-size: 18px; margin-bottom: 10px;">Yield: ${plant.reward} TON</div>
+                    <div style="color: #a0aec0;">Growth cycle: ${plant.timeHours}h</div>
+                    <div style="margin-top: 10px; color: #00ff88;">Cost: ${plant.cost} TON</div>
                 </div>
                 
-                <div class="action-buttons">
-                    ${plant.type === 'free' ? 
-                        `<button class="free-btn" onclick="plantFree(${plantId})">
-                            <i class="fas fa-seedling"></i> Plant Free
-                        </button>` :
-                    
-                    plant.type === 'task' ?
-                        `<button class="task-btn-modal" onclick="completeTaskForPlant(${plantId})">
-                            <i class="fas fa-tasks"></i> Complete Tasks
-                        </button>` :
-                    
-                    plant.type === 'paid' ?
-                        `<button class="buy-btn" onclick="buyPlant(${plantId})">
-                            <i class="fas fa-shopping-cart"></i> Buy for ${plant.cost} TON
-                        </button>` :
-                    ''}
-                </div>
+                <button class="pay-btn" style="width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 18px; font-weight: bold; cursor: pointer;" onclick="buyPlant(${plant.id})">
+                    ${plant.cost} TON
+                </button>
             </div>
         `;
     }
     
     document.getElementById('modal-content').innerHTML = modalContent;
-    document.getElementById('plant-modal').classList.remove('hidden');
+    document.getElementById('plant-modal').style.display = 'flex';
 }
 
-// Buy plant with TON (for paid plants)
+// Handle plant action
+function handlePlantAction(plantId) {
+    const plant = PLANTS.find(p => p.id === plantId);
+    showPlantModal(plant);
+}
+
+// Get button class
+function getButtonClass(plant) {
+    switch(plant.type) {
+        case 'free': return 'free-btn';
+        case 'task': return 'task-btn';
+        case 'paid': return 'pay-btn';
+        default: return '';
+    }
+}
+
+// Plant free plant
+function plantFree(plantId) {
+    if (plantId !== 1) return;
+    
+    showLoading();
+    setTimeout(() => {
+        userState.balance += 0.001;
+        updateBalance();
+        hideLoading();
+        closeModal();
+        alert('Tomato planted! Will yield 0.001 TON in 23h.');
+    }, 1000);
+}
+
+// Show task modal
+function showTaskModal() {
+    document.getElementById('plant-modal').style.display = 'none';
+    document.getElementById('task-modal').style.display = 'flex';
+}
+
+// Join channel
+function joinChannel() {
+    window.open('https://t.me/Planting_Ton', '_blank');
+    userState.tasks.joinedChannel = true;
+    alert('Channel joined!');
+}
+
+// Share to group
+function shareToGroup() {
+    const shareText = `🌿 New Web3 Game: Plant TON\n\nFarm and earn TON coins!\n\nJoin now: https://t.me/your_bot`;
+    
+    if (window.Telegram && Telegram.WebApp) {
+        Telegram.WebApp.shareText(shareText);
+    } else {
+        navigator.clipboard.writeText(shareText);
+        alert('Share text copied!');
+    }
+    
+    userState.tasks.sharedToGroup = true;
+}
+
+// Buy plant with TON
 async function buyPlant(plantId) {
     const plant = PLANTS.find(p => p.id === plantId);
     
-    if (plant.type !== 'paid') return;
-    
-    if (!userState.walletAddress) {
-        alert("Please connect your TON wallet first!");
+    if (!userState.walletConnected) {
+        alert('Please connect your TON wallet first!');
         return;
     }
     
@@ -347,352 +316,60 @@ async function buyPlant(plantId) {
         
         const result = await tonConnectUI.sendTransaction(transaction);
         
-        // Save transaction
-        saveTransaction(userState.walletAddress, plant.cost, result.boc);
-        
-        // Add to planted
-        plantSeed(plantId);
-        
-        // Send notification to admin
-        notifyAdmin(userState.walletAddress, plant.cost, plant.name);
-        
-        alert(`✅ Successfully planted ${plant.name}! It will yield ${plant.reward} TON in 24 hours.`);
+        // Success
+        setTimeout(() => {
+            userState.balance += plant.reward;
+            updateBalance();
+            hideLoading();
+            closeModal();
+            alert(`✅ ${plant.name} purchased! Will yield ${plant.reward} TON in 23h.`);
+        }, 2000);
         
     } catch (error) {
-        console.error("Transaction failed:", error);
-        alert("❌ Transaction cancelled or failed");
-    } finally {
         hideLoading();
+        alert('Transaction cancelled or failed.');
     }
 }
 
-// Plant free plant (Tomato)
-function plantFree(plantId) {
-    if (plantId !== 1) return;
-    
-    plantSeed(plantId);
-    alert("🌱 Tomato planted! Will yield 0.01 TON in 24h.");
+// Update balance display
+function updateBalance() {
+    document.getElementById('balance').textContent = userState.balance.toFixed(3);
 }
 
-// Complete tasks for Potato plant
-function completeTaskForPlant(plantId) {
-    if (plantId !== 2) return;
-    
-    if (userState.tasks.invites >= 5 && userState.tasks.sharedToGroup && userState.tasks.joinedChannel) {
-        plantSeed(plantId);
-        alert("🥔 Potato unlocked and planted! Will yield 0.03 TON in 24h.");
-    } else {
-        showTaskRequirements();
-    }
-}
-
-// Plant seed function
-function plantSeed(plantId) {
-    const existingIndex = userState.planted.findIndex(p => p.id === plantId);
-    
-    if (existingIndex > -1) {
-        userState.planted[existingIndex] = {
-            id: plantId,
-            plantedAt: Date.now()
-        };
-    } else {
-        userState.planted.push({
-            id: plantId,
-            plantedAt: Date.now()
-        });
-    }
-    
-    saveUserState();
-    renderFarmGrid();
-    closeModal();
-}
-
-// Harvest plant
-function harvestPlant(plantId) {
-    const plant = PLANTS.find(p => p.id === plantId);
-    const plantedIndex = userState.planted.findIndex(p => p.id === plantId);
-    
-    if (plantedIndex === -1) return;
-    
-    // Add to balance
-    userState.balance += plant.reward;
-    balanceEl.textContent = userState.balance.toFixed(3);
-    
-    // Remove from planted (needs to be replanted)
-    userState.planted.splice(plantedIndex, 1);
-    
-    // Add to history
-    userState.plantedHistory.push({
-        id: plantId,
-        harvestedAt: Date.now(),
-        amount: plant.reward
-    });
-    
-    saveUserState();
-    renderFarmGrid();
-    closeModal();
-    
-    alert(`💰 Harvested ${plant.reward} TON from ${plant.name}!`);
-}
-
-// Check if plant is unlocked
-function isPlantUnlocked(plantId) {
-    const plant = PLANTS.find(p => p.id === plantId);
-    
-    if (plant.type === 'free') return true;
-    
-    if (plant.type === 'task') {
-        return userState.tasks.invites >= 5 && 
-               userState.tasks.sharedToGroup && 
-               userState.tasks.joinedChannel;
-    }
-    
-    if (plant.type === 'paid') {
-        // Paid plants are always "unlockable" - just need to pay
-        return true;
-    }
-    
-    return false;
-}
-
-// Get unlock text for plant
-function getUnlockText(plant) {
-    switch(plant.type) {
-        case 'free': return 'FREE';
-        case 'task': return 'DO TASK';
-        case 'paid': return `${plant.cost} TON`;
-        default: return 'LOCKED';
-    }
-}
-
-// Get cost text
-function getCostText(plant) {
-    if (plant.type === 'free') return 'Free';
-    if (plant.type === 'task') return 'Complete Tasks';
-    return `${plant.cost} TON`;
-}
-
-// Calculate ROI
-function calculateROI(plant) {
-    if (plant.cost === 0) return 0;
-    return (((plant.reward - plant.cost) / plant.cost) * 100).toFixed(1);
-}
-
-// Get time left for plant
-function getTimeLeft(plantedAt, hours) {
-    const elapsed = (Date.now() - plantedAt) / 1000 / 60 / 60; // hours
-    const timeLeft = hours - elapsed;
-    return timeLeft > 0 ? timeLeft : 0;
-}
-
-// Format time
-function formatTime(hours) {
-    const h = Math.floor(hours);
-    const m = Math.floor((hours - h) * 60);
-    return `${h}h ${m}m`;
-}
-
-function formatHours(hours) {
-    return `${Math.ceil(hours)} hours`;
-}
-
-// Show locked message
-function showLockedMessage(plant) {
-    let message = '';
-    
-    switch(plant.type) {
-        case 'task':
-            message = `Unlock ${plant.name} by:\n• Joining our channel\n• Inviting 5 friends\n• Sharing to a group`;
-            break;
-        case 'paid':
-            message = `Purchase ${plant.name} for ${plant.cost} TON\nDaily yield: ${plant.reward} TON`;
-            break;
-    }
-    
-    alert(`🔒 ${plant.name} is locked\n\n${message}`);
-}
-
-// Task completion functions
-function joinChannel() {
-    window.open('https://t.me/Planting_Ton', '_blank');
-    userState.tasks.joinedChannel = true;
-    saveUserState();
-    alert('✅ Channel joined!');
-}
-
-function shareToGroup() {
-    const shareText = `🌿 New Web3 Game: Plant TON\n\nFarm and earn TON coins with automated rewards!\n\nJoin now: ${window.location.href}?ref=${userState.refCode || 'direct'}`;
-    
-    if (window.Telegram && Telegram.WebApp) {
-        Telegram.WebApp.shareText(shareText);
-    } else {
-        navigator.clipboard.writeText(shareText);
-        alert('Share text copied to clipboard!');
-    }
-    
-    userState.tasks.sharedToGroup = true;
-    saveUserState();
-}
-
-// Referral system
-function generateRefCode() {
-    if (!userState.refCode) {
-        userState.refCode = 'REF' + Math.random().toString(36).substr(2, 8).toUpperCase();
-        saveUserState();
-    }
-    
-    const refLink = `${window.location.origin}${window.location.pathname}?ref=${userState.refCode}`;
-    document.getElementById('ref-link').value = refLink;
-    
-    return refLink;
-}
-
-function copyRefLink() {
-    const refLink = generateRefCode();
-    navigator.clipboard.writeText(refLink);
-    alert('Referral link copied!');
-}
-
-// Check URL for referral
-function checkReferral() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
-    
-    if (refCode && refCode !== userState.refCode) {
-        // This is where you'd credit the referrer
-        console.log(`User came from referral: ${refCode}`);
-        // In a real app, you'd save this to your backend
-    }
-}
-
-// Withdrawal function
-function withdrawTON() {
-    if (userState.balance < MIN_WITHDRAWAL) {
-        alert(`Minimum withdrawal is ${MIN_WITHDRAWAL} TON`);
-        return;
-    }
-    
-    if (!userState.walletAddress) {
-        alert("Connect your wallet to withdraw");
-        return;
-    }
-    
-    // Send withdrawal request to admin
-    sendWithdrawalRequest(userState.walletAddress, userState.balance);
-    
-    alert(`Withdrawal request for ${userState.balance.toFixed(2)} TON sent to admin.\nYou will receive it within 24 hours.`);
-    
-    // Reset balance
-    userState.balance = 0;
-    saveUserState();
-    updateUI();
-}
-
-// Send notification to admin (Telegram bot)
-async function notifyAdmin(userAddress, amount, plantName) {
-    const message = `🪴 NEW PLANT PURCHASE\n\n` +
-                   `Address: ${userAddress}\n` +
-                   `Plant: ${plantName}\n` +
-                   `Amount: ${amount} TON\n` +
-                   `Time: ${new Date().toLocaleString()}`;
-    
-    // Replace with your Telegram bot token and chat ID
-    const TELEGRAM_BOT_TOKEN = '8499432466:AAGJx0TeC18uPYDAX-dpR_unCnEWLntOhG8';
-    const TELEGRAM_CHAT_ID = '5938039998';
-    
-    try {
-        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: TELEGRAM_CHAT_ID,
-                text: message,
-                parse_mode: 'HTML'
-            })
-        });
-    } catch (error) {
-        console.error('Failed to notify admin:', error);
-    }
-}
-
-// Save transaction locally
-function saveTransaction(address, amount, boc) {
-    const transactions = JSON.parse(localStorage.getItem('ton_transactions') || '[]');
-    transactions.push({
-        address,
-        amount,
-        boc,
-        timestamp: new Date().toISOString(),
-        plant: PLANTS.find(p => p.cost === amount)?.name || 'Unknown'
-    });
-    localStorage.setItem('ton_transactions', JSON.stringify(transactions));
-}
-
-// Local storage functions
-function saveUserState() {
-    localStorage.setItem('plant_ton_user', JSON.stringify(userState));
-}
-
-function loadUserState() {
-    const saved = localStorage.getItem('plant_ton_user');
-    if (saved) {
-        userState = JSON.parse(saved);
-        balanceEl.textContent = userState.balance.toFixed(3);
-        inviteProgress.textContent = `${userState.tasks.invites}/5`;
-    }
-}
-
-// Update UI
-function updateUI() {
-    balanceEl.textContent = userState.balance.toFixed(3);
-    inviteProgress.textContent = `${userState.tasks.invites}/5`;
-    
-    const plantedCount = userState.planted.length;
-    document.getElementById('planted-count').textContent = plantedCount;
-}
-
-// Modal functions
-function closeModal() {
-    document.getElementById('plant-modal').classList.add('hidden');
-}
-
+// Show loading
 function showLoading() {
-    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('loading').style.display = 'flex';
 }
 
+// Hide loading
 function hideLoading() {
-    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('loading').style.display = 'none';
 }
 
-// Navigation
-function showSection(section) {
-    // Add your section switching logic here
-    console.log(`Switch to ${section} section`);
+// Close modal
+function closeModal() {
+    document.getElementById('plant-modal').style.display = 'none';
+    document.getElementById('task-modal').style.display = 'none';
 }
 
-// Initialize on load
-window.onload = function() {
-    initGame();
-    checkReferral();
-    generateRefCode();
-    
-    // Handle TON Connect status changes
-    tonConnectUI.onStatusChange((wallet) => {
-        if (wallet) {
-            userState.walletAddress = wallet.account.address;
-            document.getElementById('wallet-address').textContent = 
-                `${wallet.account.address.slice(0, 6)}...${wallet.account.address.slice(-4)}`;
-            document.getElementById('wallet-info').classList.remove('hidden');
-            document.getElementById('ton-connect-button').style.display = 'none';
-            saveUserState();
-        }
-    });
-};
-
+// Disconnect wallet
 function disconnectWallet() {
     tonConnectUI.disconnect();
-    userState.walletAddress = null;
-    document.getElementById('wallet-info').classList.add('hidden');
+    userState.walletConnected = false;
+    document.getElementById('wallet-info').style.display = 'none';
     document.getElementById('ton-connect-button').style.display = 'block';
-    saveUserState();
 }
+
+// Show section (bottom nav)
+function showSection(section) {
+    // Remove active class from all buttons
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    event.target.classList.add('active');
+    
+    // Here you would load different sections
+    alert(`${section} section will be loaded`);
+        }
